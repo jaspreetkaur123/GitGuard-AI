@@ -1,7 +1,3 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const genAI = new GoogleGenerativeAI(process.env.LLM_API_KEY);
-
 const SYSTEM_PROMPT = `
 You are GitGuard AI, a premium code review assistant. Your goal is to analyze code diffs and provide actionable, high-quality feedback.
 
@@ -26,38 +22,64 @@ Rules:
  * Sanitize AI output to prevent malicious code injection or formatting issues.
  */
 const sanitizeAIResponse = (text) => {
-  // Remove any potential script tags or HTML that shouldn't be there
   let cleaned = text.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
-  
-  // Ensure we don't have broken markdown code blocks
+
   const codeBlocks = (cleaned.match(/```/g) || []).length;
   if (codeBlocks % 2 !== 0) {
-    cleaned += "\n```"; // Close dangling code block
+    cleaned += "\n```";
   }
-  
+
   return cleaned;
 };
 
 /**
- * Analyze a code diff using Gemini Pro
+ * Analyze a code diff using DeepSeek's OpenAI-compatible chat API.
  */
 const analyzeDiff = async (diffContent) => {
   try {
-    if (!process.env.LLM_API_KEY) {
-      throw new Error('LLM_API_KEY is not configured');
+    if (!process.env.DEEPSEEK_API_KEY) {
+      throw new Error("DEEPSEEK_API_KEY is not configured");
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: process.env.DEEPSEEK_MODEL || "deepseek-chat",
+        messages: [
+          {
+            role: "system",
+            content: SYSTEM_PROMPT,
+          },
+          {
+            role: "user",
+            content: `Analyze the following code diff and provide a comprehensive review:\n\n${diffContent}`,
+          },
+        ],
+        temperature: 0.2,
+      }),
+    });
 
-    const prompt = `${SYSTEM_PROMPT}\n\nAnalyze the following code diff and provide a comprehensive review:\n\n${diffContent}`;
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `DeepSeek API request failed: ${response.status} ${errorBody}`,
+      );
+    }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const data = await response.json();
+    const text = data?.choices?.[0]?.message?.content;
+
+    if (!text) {
+      throw new Error("DeepSeek API returned an empty response");
+    }
 
     return sanitizeAIResponse(text);
   } catch (error) {
-    console.error('Error analyzing diff with AI:', error.message);
+    console.error("Error analyzing diff with DeepSeek:", error.message);
     throw error;
   }
 };
