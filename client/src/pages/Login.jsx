@@ -1,5 +1,5 @@
 import React from "react";
-import { Github, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 const Login = () => {
   const handleLogin = () => {
@@ -82,7 +82,6 @@ const Login = () => {
             gap: "8px",
           }}
         >
-          <Github size={20} />
           Login with GitHub
         </button>
 
