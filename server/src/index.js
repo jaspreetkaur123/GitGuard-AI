@@ -76,7 +76,10 @@ app.get("/", (req, res) => {
 // Basic Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send({ error: "Something went wrong!" });
+  const isProduction = process.env.NODE_ENV === "production";
+  res.status(500).send({
+    error: isProduction ? "Something went wrong!" : err.message,
+  });
 });
 
 const PORT = process.env.PORT || 5000;

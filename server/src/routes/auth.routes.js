@@ -10,21 +10,41 @@ const frontendBaseUrl = (
 // @route   GET /auth/github
 router.get(
   "/github",
-  passport.authenticate("github", { scope: ["user:email", "repo"] }),
+  passport.authenticate("github", { scope: ["read:user", "repo"] }),
 );
 
 // @desc    GitHub auth callback
 // @route   GET /auth/github/callback
-router.get(
-  "/github/callback",
-  passport.authenticate("github", {
-    failureRedirect: `${frontendBaseUrl}/login`,
-  }),
-  (req, res) => {
-    // Successful authentication, redirect to dashboard.
-    res.redirect(`${frontendBaseUrl}/dashboard`);
-  },
-);
+router.get("/github/callback", (req, res, next) => {
+  passport.authenticate("github", (err, user, info) => {
+    if (err) {
+      console.error("GitHub OAuth callback error:", err.message);
+      return res.status(500).json({
+        error: "GitHub authentication failed",
+        details: err.message,
+      });
+    }
+
+    if (!user) {
+      const reason = info?.message || "Authentication was denied or failed";
+      return res.redirect(
+        `${frontendBaseUrl}/login?error=${encodeURIComponent(reason)}`,
+      );
+    }
+
+    req.logIn(user, (loginError) => {
+      if (loginError) {
+        console.error("Session login error:", loginError.message);
+        return res.status(500).json({
+          error: "Login session could not be created",
+          details: loginError.message,
+        });
+      }
+
+      return res.redirect(`${frontendBaseUrl}/dashboard`);
+    });
+  })(req, res, next);
+});
 
 // @desc    Get current user
 // @route   GET /auth/me

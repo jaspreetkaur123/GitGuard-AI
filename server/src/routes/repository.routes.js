@@ -4,6 +4,7 @@ const User = require("../models/User");
 const ReviewLog = require("../models/ReviewLog");
 const {
   getUserOctokitInstance,
+  createReviewCommentMessage,
   fetchUserRepositories,
   fetchRepositoryPullRequests,
   fetchDiff,
@@ -95,8 +96,14 @@ router.post("/:id/pulls/:number/review", async (req, res) => {
     const octokit = getUserOctokitInstance(user.githubAccessToken);
     const rawDiff = await fetchDiff(octokit, owner, repoName, pullNumber);
     const analysis = await analyzeDiff(rawDiff);
+    const reviewComment = createReviewCommentMessage({
+      repoFullName: repo.fullName,
+      pullNumber,
+      diffContent: rawDiff,
+      analysis,
+    });
 
-    await postComment(octokit, owner, repoName, pullNumber, analysis);
+    await postComment(octokit, owner, repoName, pullNumber, reviewComment);
 
     const reviewLog = await ReviewLog.create({
       repository: repo._id,
@@ -209,6 +216,8 @@ router.get("/dashboard/summary", async (req, res) => {
         repoFullName: log.repository?.fullName || "Unknown repository",
         pullRequestNumber: log.pullRequestNumber,
         pullRequestUrl: log.pullRequestUrl,
+        aiResponse: log.aiResponse,
+        diffAnalyzed: log.diffAnalyzed,
         status: log.status,
         createdAt: log.createdAt,
       })),
