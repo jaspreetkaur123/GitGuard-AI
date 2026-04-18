@@ -64,6 +64,7 @@ const Dashboard = () => {
   const [isReviewing, setIsReviewing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isImporting, setIsImporting] = useState(false);
+  const [expandedReviewLogId, setExpandedReviewLogId] = useState(null);
   const [error, setError] = useState("");
 
   const loadInitialData = async () => {
@@ -244,6 +245,8 @@ const Dashboard = () => {
   const selectedGithubRepo = githubRepos.find(
     (repo) => repo.id.toString() === selectedGithubRepoId,
   );
+  const getReviewLogId = (log, index) =>
+    log._id || log.id || `${log.pullRequestNumber}-${index}`;
   const selectedRepoName =
     importedRepos.find((repo) => repo._id === selectedRepoId)?.fullName ||
     "the selected repository";
@@ -302,7 +305,9 @@ const Dashboard = () => {
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: "24px" }}
       >
-        <h2 style={{ fontSize: "1.25rem" }}>Recent Review Logs</h2>
+        <h2 style={{ fontSize: "1.25rem" }}>
+          Recent Review Logs (Analysis History)
+        </h2>
         {recentReviewLogs.length === 0 ? (
           <p style={{ color: "var(--text-muted)" }}>
             No review logs yet. Import a repository and trigger PR reviews.
@@ -311,11 +316,11 @@ const Dashboard = () => {
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {recentReviewLogs.map((log, index) => (
             <div
-              key={log.id}
+              key={getReviewLogId(log, index)}
               style={{
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
+                flexDirection: "column",
+                gap: "12px",
                 paddingBottom: "16px",
                 borderBottom:
                   index !== recentReviewLogs.length - 1
@@ -324,26 +329,104 @@ const Dashboard = () => {
               }}
             >
               <div
-                style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  width: "100%",
+                  flexWrap: "wrap",
+                }}
               >
-                <span style={{ fontWeight: 600 }}>
-                  PR #{log.pullRequestNumber} review
-                </span>
-                <span
-                  style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
+                  }}
                 >
-                  Repo: {log.repoFullName}
-                </span>
+                  <span style={{ fontWeight: 600 }}>
+                    PR #{log.pullRequestNumber} review
+                  </span>
+                  <span
+                    style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}
+                  >
+                    Repo: {log.repoFullName}
+                  </span>
+                  {log.createdAt ? (
+                    <span
+                      style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
+                    >
+                      {new Date(log.createdAt).toLocaleString()}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                >
+                  <a
+                    href={log.pullRequestUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="badge-success"
+                    style={{ textDecoration: "none" }}
+                  >
+                    {log.status}
+                  </a>
+                  <button
+                    className="btn-secondary"
+                    type="button"
+                    onClick={() =>
+                      setExpandedReviewLogId((current) =>
+                        current === getReviewLogId(log, index)
+                          ? null
+                          : getReviewLogId(log, index),
+                      )
+                    }
+                    style={{
+                      minWidth: "120px",
+                      justifyContent: "center",
+                      padding: "8px 10px",
+                    }}
+                  >
+                    {expandedReviewLogId === getReviewLogId(log, index)
+                      ? "Hide Output"
+                      : "View Output"}
+                  </button>
+                </div>
               </div>
-              <a
-                href={log.pullRequestUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="badge-success"
-                style={{ textDecoration: "none" }}
-              >
-                {log.status}
-              </a>
+
+              {expandedReviewLogId === getReviewLogId(log, index) ? (
+                <div
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  <strong style={{ fontSize: "0.9rem" }}>
+                    Analysis Output
+                  </strong>
+                  <pre
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      background: "rgba(0, 0, 0, 0.25)",
+                      borderRadius: "12px",
+                      padding: "12px",
+                      margin: 0,
+                      color: "var(--text)",
+                      maxHeight: "260px",
+                      overflow: "auto",
+                    }}
+                  >
+                    {log.aiResponse ||
+                      log.analysisOutput ||
+                      "No analysis output found for this review."}
+                  </pre>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
