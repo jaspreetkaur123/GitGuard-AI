@@ -1,13 +1,29 @@
-const { Octokit } = require("@octokit/rest");
-const { createAppAuth } = require("@octokit/auth-app");
+let OctokitClass;
+let createAppAuthFn;
+
+const loadOctokitModules = async () => {
+  if (OctokitClass && createAppAuthFn) {
+    return;
+  }
+
+  const [{ Octokit }, { createAppAuth }] = await Promise.all([
+    import("@octokit/rest"),
+    import("@octokit/auth-app"),
+  ]);
+
+  OctokitClass = Octokit;
+  createAppAuthFn = createAppAuth;
+};
 
 /**
  * Initialize Octokit for a specific installation
  * @param {string} installationId - The GitHub App installation ID
  */
-const getOctokitInstance = (installationId) => {
-  return new Octokit({
-    authStrategy: createAppAuth,
+const getOctokitInstance = async (installationId) => {
+  await loadOctokitModules();
+
+  return new OctokitClass({
+    authStrategy: createAppAuthFn,
     auth: {
       appId: process.env.GITHUB_APP_ID,
       privateKey: process.env.GITHUB_PRIVATE_KEY,
@@ -16,8 +32,10 @@ const getOctokitInstance = (installationId) => {
   });
 };
 
-const getUserOctokitInstance = (accessToken) => {
-  return new Octokit({
+const getUserOctokitInstance = async (accessToken) => {
+  await loadOctokitModules();
+
+  return new OctokitClass({
     auth: accessToken,
   });
 };
