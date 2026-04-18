@@ -52,7 +52,7 @@ router.get("/:id/pulls/:number/diff", async (req, res) => {
     }
 
     const pullNumber = Number(req.params.number);
-    const octokit = getUserOctokitInstance(user.githubAccessToken);
+    const octokit = await getUserOctokitInstance(user.githubAccessToken);
     const rawDiff = await fetchDiff(octokit, owner, repoName, pullNumber);
 
     res.json({
@@ -93,7 +93,7 @@ router.post("/:id/pulls/:number/review", async (req, res) => {
     }
 
     const pullNumber = Number(req.params.number);
-    const octokit = getUserOctokitInstance(user.githubAccessToken);
+    const octokit = await getUserOctokitInstance(user.githubAccessToken);
     const rawDiff = await fetchDiff(octokit, owner, repoName, pullNumber);
     const analysis = await analyzeDiff(rawDiff);
     const reviewComment = createReviewCommentMessage({
@@ -173,7 +173,7 @@ router.get("/dashboard/summary", async (req, res) => {
     const user = await User.findById(req.user._id).select("+githubAccessToken");
 
     if (user?.githubAccessToken && repositories.length > 0) {
-      const octokit = getUserOctokitInstance(user.githubAccessToken);
+      const octokit = await getUserOctokitInstance(user.githubAccessToken);
       const pullRequestCounts = await Promise.allSettled(
         repositories.slice(0, 20).map(async (repo) => {
           const [owner, repoName] = repo.fullName.split("/");
@@ -252,7 +252,7 @@ router.get("/github", async (req, res) => {
         .json({ error: "GitHub access token not found. Please login again." });
     }
 
-    const octokit = getUserOctokitInstance(user.githubAccessToken);
+    const octokit = await getUserOctokitInstance(user.githubAccessToken);
     const repos = await fetchUserRepositories(octokit);
 
     const payload = repos.map((repo) => ({
@@ -347,7 +347,7 @@ router.get("/:id/pulls", async (req, res) => {
 
     const [owner, repoName] = repo.fullName.split("/");
 
-    const octokit = getUserOctokitInstance(user.githubAccessToken);
+    const octokit = await getUserOctokitInstance(user.githubAccessToken);
     const pulls = await fetchRepositoryPullRequests(octokit, owner, repoName);
 
     const payload = pulls.map((pr) => ({

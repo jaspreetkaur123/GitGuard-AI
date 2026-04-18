@@ -33,7 +33,7 @@ const handleGitHubWebhook = async (req, res) => {
               `Limit reached for repo owner ${repoDoc.owner}: ${limitCheck.message}`,
             );
             // Optionally: Post a comment to PR saying limit is reached
-            const octokit = getOctokitInstance(installation.id);
+            const octokit = await getOctokitInstance(installation.id);
             await postComment(
               octokit,
               owner,
@@ -50,7 +50,7 @@ const handleGitHubWebhook = async (req, res) => {
         console.log(`Processing PR #${pullNumber} in ${repository.full_name}`);
 
         // 1. Get Octokit Instance
-        const octokit = getOctokitInstance(installation.id);
+        const octokit = await getOctokitInstance(installation.id);
 
         // 2. Fetch Diff
         const diffData = await fetchDiff(octokit, owner, repoName, pullNumber);
