@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const passport = require("passport");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
 require("./config/passport"); // Initialize passport config
@@ -16,6 +17,9 @@ const repositoryRoutes = require("./routes/repository.routes");
 
 // Initialize Express app
 const app = express();
+
+// Required so secure cookies work correctly behind Vercel proxy
+app.set("trust proxy", 1);
 
 // Connect to Database
 connectDB();
@@ -49,10 +53,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "gitguard_secret",
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      ttl: 24 * 60 * 60,
+    }),
     resave: false,
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   }),
