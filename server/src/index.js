@@ -75,7 +75,14 @@ app.use(passport.session());
 app.use("/webhooks", webhookRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/payments", paymentRoutes);
-app.use("/api/repositories", repositoryRoutes);
+app.get("/auth/github/callback", async (req, res) => {
+  // 1. get code from GitHub
+  // 2. exchange for access token
+  // 3. save user in DB
+  // 4. redirect to frontend page
+
+  res.redirect("http://localhost:5000/repositories/new");
+});
 
 // Routes Placeholder
 app.get("/", (req, res) => {

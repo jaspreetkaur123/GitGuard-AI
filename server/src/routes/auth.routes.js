@@ -41,7 +41,7 @@ router.get("/github/callback", (req, res, next) => {
         });
       }
 
-      return res.redirect(`${frontendBaseUrl}/dashboard`);
+      return res.redirect(`${frontendBaseUrl}/repositories/new"`);
     });
   })(req, res, next);
 });

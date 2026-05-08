@@ -12,6 +12,7 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Upgrade from "./pages/Upgrade";
 import { authService } from "./services/api";
+import NewRepository from "./pages/NewRepository";
 
 const LoadingScreen = () => (
   <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
@@ -63,6 +64,7 @@ function App() {
             isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
           }
         />
+        
 
         <Route
           element={
@@ -76,10 +78,11 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/upgrade" element={<Upgrade />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/repositories/new" element={<NewRepository />} />
+             {/* <Route path="/" element={<Navigate to="/dashboard" replace />} />  */}
           </Route>
         </Route>
-
+ 
         <Route
           path="*"
           element={
