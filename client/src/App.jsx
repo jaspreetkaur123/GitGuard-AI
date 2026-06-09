@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-import Settings from "./pages/Settings";
+// import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Upgrade from "./pages/Upgrade";
 import { authService } from "./services/api";
@@ -74,7 +74,7 @@ function App() {
         >
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/settings" element={<Settings />} />
+            {/* <Route path="/settings" element={<Settings />} /> */}
             <Route path="/upgrade" element={<Upgrade />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>

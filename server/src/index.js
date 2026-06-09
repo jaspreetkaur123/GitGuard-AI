@@ -5,7 +5,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const passport = require("passport");
 const session = require("express-session");
-const MongoStore = require("connect-mongo");
+const { MongoStore } = require("connect-mongo");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
 require("./config/passport"); // Initialize passport config

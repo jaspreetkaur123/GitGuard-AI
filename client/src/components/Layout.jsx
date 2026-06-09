@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
-  Settings,
+  // Settings,
   ShieldCheck,
   LogOut,
   CreditCard,
@@ -84,10 +84,10 @@ const Layout = () => {
             <LayoutDashboard size={20} />
             Dashboard
           </NavLink>
-          <NavLink to="/settings" className="nav-link">
+          {/* <NavLink to="/settings" className="nav-link">
             <Settings size={20} />
             Settings
-          </NavLink>
+          </NavLink> */}
           <NavLink to="/upgrade" className="nav-link">
             <CreditCard size={20} />
             Upgrade Plan
